@@ -1,0 +1,105 @@
+import React,{FC,ReactElement} from "react";
+import {History,LocationState} from 'history';
+import {useHistory} from "react-router-dom";
+import {useDispatch} from "react-redux";
+import {Button,Dialog,DialogContent,Typography} from "@material-ui/core";
+import {useForm,Controller} from "react-hook-form";
+import TwitterIcon from "@material-ui/icons/Twitter";
+import {yupResolver} from "@hookform/resolvers/yup";
+import * as yup from 'yup';
+
+import {useSetPasswordModalStyles} from './SetPasswordModalStyles';
+import {RegistrationInputField} from "../RegistrationInput/RegistrationInputField";
+import {fetchSignUp} from '../../../store/ducks/user/actionCreators';
+import {useGlobalStyles} from "../../../util/globalClasses";
+
+interface SetPasswordModalProps{
+    email:string;
+    open:boolean;
+    onClose:()=>void;
+}
+
+interface PasswordFormProps{
+    password:string;
+}
+
+export interface RegistrationProps{
+    email:string;
+    password:string;
+    history:History<LocationState>;
+}
+
+const SetPasswordFormSchema = yup.object().shape({
+    password:yup.string().min(8,"Your password needs to be at least 8 characters. Please enter a longer one.").required()
+})
+
+const SetPasswordModal:FC<SetPasswordModalProps> = ({email,open,onClose}):ReactElement => {
+    const globalClasses = useGlobalStyles();
+    const classes = useSetPasswordModalStyles();
+    const dispatch = useDispatch();
+    const history = useHistory();
+    const {control,handleSubmit,watch,formState:{errors}} = useForm<PasswordFormProps>({
+        resolver:yupResolver(SetPasswordFormSchema),
+        mode:"onChange"
+    });
+
+    const onSubmit = (data:PasswordFormProps): void => {
+        const registrationData: RegistrationProps = {email:email,password:data.password, history:history};
+        dispatch(fetchSignUp(registrationData));
+    }
+
+    return (
+        <Dialog open={open}
+                transitionDuration={0}
+                className={globalClasses.modalShadow}
+                onClose={onClose}
+                aria-labelledby={'form-dialog-title'}
+                hideBackdrop
+                >
+            <DialogContent style={{paddingTop:0,paddingBottom:0}} className={classes.container}>
+                <div className={classes.logoIcon}>
+                    <TwitterIcon/>
+                </div>
+                <Typography variant={'h3'} component={'div'}>
+                    You'll need a password
+                </Typography>
+                <Typography variant={'subtitle1'} component={'div'}>
+                    Make sure it's 8 characters or more.
+                </Typography>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <div style={{marginTop:10}}>
+                        <Controller
+                            name={'password'}
+                            control={control}
+                            defaultValue={''}
+                            render={({field:{onChange,value}}) => (
+                                <RegistrationInputField
+                                    label={'Password'}
+                                    id={'password'}
+                                    name={'password'}
+                                    type={'password'}
+                                    value={value}
+                                    variant={'filled'}
+                                    onChange={onChange}
+                                    helperText={errors.password?.message}
+                                    error={!!errors.password}
+                                    fullWidth
+                                    />
+                                )}
+                            />
+                    </div>
+                    <Button
+                        className={classes.button}
+                        disabled={!watch('password')}
+                        type={'submit'}
+                        variant={'contained'}
+                        color={'primary'}
+                        size={'small'}
+                        fullWidth
+                        >Next</Button>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+export default SetPasswordModal;
