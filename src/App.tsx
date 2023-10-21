@@ -163,6 +163,8 @@ const App: FC = (): ReactElement => {
     useEffect(() => {
         let stompClient = Stomp.over(new SockJS(WS_URL));
 
+        console.log('myProfileId:' , myProfileId);
+
         if (myProfileId) {
             if (location.pathname !== HOME_CONNECT) {
                 dispatch(fetchRelevantUsers());

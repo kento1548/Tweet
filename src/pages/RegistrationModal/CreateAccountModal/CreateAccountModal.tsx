@@ -31,6 +31,8 @@ const CreateAccountModal: FC<CustomizeModalProps> = (
     const onSubmit = (): void => {
         setIsLoading(true);
 
+        console.log('registrationInfo:' , registrationInfo);
+
         AuthApi.sendRegistrationCode(registrationInfo)
             .then((response) => {
                 setIsLoading(false);
